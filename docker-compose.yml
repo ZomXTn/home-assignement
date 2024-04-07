@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Django Backend Service
+  web:
+    build: ./RssAggregator-back/
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./RssAggregator-back/:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - my_bridge_network
+
+  # MySQL Database Service
+  db:
+    image: mysql:8.3
+    restart: always
+    volumes:
+      - mysql-db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=rayene
+      - MYSQL_ROOT_PASSWORD=test_test_test
+    networks:
+      - my_bridge_network
+
+  # React Frontend Service
+  frontend:
+    build: ./front-rssaggregator
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+      - my_bridge_network
+
+networks:
+  my_bridge_network:
+    driver: bridge
+
+volumes: 
+  mysql-db: 
+    driver: local
